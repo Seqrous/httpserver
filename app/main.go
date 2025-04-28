@@ -45,19 +45,7 @@ func handleRequestWithRecovery(conn net.Conn) {
 }
 
 func handleRequest(conn net.Conn) {
-	buffer := make([]byte, 1024)
-	size, err := conn.Read(buffer)
-	if err != nil {
-		builder, _ := responsebuilder.New(400)
-		response, _ := builder.Build()
-		conn.Write([]byte(response))
-		return
-	}
-
-	rawRequest := string(buffer[:size])
-	fmt.Println("Received request:", rawRequest)
-
-	request, err := httprequest.Parse(rawRequest)
+	request, err := httprequest.Parse(conn)
 	if err != nil {
 		builder, _ := responsebuilder.New(400)
 		response, _ := builder.Build()
@@ -77,7 +65,6 @@ func handleRequest(conn net.Conn) {
 		builder.AddHeader("Content-Length", strconv.Itoa(len(responseBody)))
 		builder.SetBody(responseBody)
 		response, _ := builder.Build()
-		fmt.Println(response)
 		conn.Write([]byte(response))
 	} else if strings.HasPrefix(request.Target, "/echo/") {
 		responseBody := strings.Split(request.Target, "/echo/")[1]

@@ -1,7 +1,11 @@
 package httprequest
 
 import (
+	"bufio"
 	"errors"
+	"fmt"
+	"io"
+	"strconv"
 	"strings"
 )
 
@@ -18,38 +22,69 @@ type Request struct {
 	Method  HTTPMethod
 	Target  string
 	Headers map[string]string
-	Body    string
+	Body    []byte
 }
 
-func Parse(request string) (*Request, error) {
-	splits := strings.Split(request, "\r\n")
-	if len(splits) < 3 {
-		return nil, errors.New("malformed request")
+func Parse(r io.Reader) (*Request, error) {
+	buffer := bufio.NewReader(r)
+	line, err := buffer.ReadString('\n')
+	if err != nil {
+		return nil, fmt.Errorf("failed to read request line: %v", err)
 	}
 
-	// parse status line
-	statusSplits := strings.Split(splits[0], " ")
-	method, err := validateMethod(statusSplits[0])
+	line = strings.TrimSpace(line)
+	status := strings.Split(line, " ")
+	if len(status) != 3 {
+		return nil, fmt.Errorf("malformed status line: %v", line)
+	}
+
+	method, target := status[0], status[1]
+	httpMethod, err := validateMethod(method)
 	if err != nil {
 		return nil, err
 	}
-	target := statusSplits[1]
 
-	// skip first and last splits (status and body)
 	headers := make(map[string]string)
-	for i := 1; i < len(splits)-2; i++ {
-		header := strings.Split(splits[i], ":")
-		if len(header) != 2 {
-			continue // skip malformed headers
+	for {
+		line, err = buffer.ReadString('\n')
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse headers: %v", err)
 		}
+
+		line = strings.TrimSpace(line)
+		if line == "" {
+			break // end of headers
+		}
+
+		header := strings.Split(line, ":")
+		if len(header) != 2 {
+			continue // ignore malformed headers
+		}
+
 		key := strings.TrimSpace(header[0])
 		value := strings.TrimSpace(header[1])
 		headers[key] = value
 	}
 
-	body := splits[len(splits)-1]
+	contentLength := 0
+	if cl, ok := headers["Content-Length"]; ok {
+		contentLength, err = strconv.Atoi(cl)
+		if err != nil {
+			return nil, fmt.Errorf("malformed Content-Length: %v", err)
+		}
+	}
+
+	var body []byte
+	if contentLength > 0 {
+		body = make([]byte, contentLength)
+		_, err = io.ReadFull(buffer, body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read body: %v", err)
+		}
+	}
+
 	return &Request{
-		Method:  method,
+		Method:  httpMethod,
 		Target:  target,
 		Headers: headers,
 		Body:    body,
