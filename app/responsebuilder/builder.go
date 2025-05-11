@@ -17,6 +17,8 @@ func New(code int) (*ResponseBuilder, error) {
 	switch code {
 	case 200:
 		status = "OK"
+	case 201:
+		status = "Created"
 	case 400:
 		status = "Bad Request"
 	case 404:

@@ -74,7 +74,7 @@ func handleRequest(conn net.Conn) {
 		builder.SetBody(responseBody)
 		response, _ := builder.Build()
 		conn.Write([]byte(response))
-	} else if strings.HasPrefix(request.Target, "/files/") {
+	} else if strings.HasPrefix(request.Target, "/files/") && request.Method == httprequest.GET {
 		fileName := strings.Split(request.Target, "/files/")[1]
 		fileBuffer, err := os.ReadFile(fileName)
 		if err != nil {
@@ -87,6 +87,19 @@ func handleRequest(conn net.Conn) {
 		builder.AddHeader("Content-Type", "text/html; charset=utf-8")
 		builder.AddHeader("Content-Length", strconv.Itoa(len(fileContent)))
 		builder.SetBody(fileContent)
+		response, _ := builder.Build()
+		conn.Write([]byte(response))
+	} else if strings.HasPrefix(request.Target, "/files/") && request.Method == httprequest.POST {
+		fileName := strings.Split(request.Target, "/files/")[1]
+		file, err := os.Create(fileName)
+		if err != nil {
+			panic(err)
+		}
+		_, err = file.Write(request.Body)
+		if err != nil {
+			panic(err)
+		}
+		builder, _ := responsebuilder.New(201)
 		response, _ := builder.Build()
 		conn.Write([]byte(response))
 	} else {
