@@ -27,7 +27,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		handleRequestWithRecovery(conn)
+		go handleRequestWithRecovery(conn)
 	}
 }
 
