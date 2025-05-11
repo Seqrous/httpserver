@@ -82,8 +82,11 @@ func handleRequest(conn net.Conn) {
 			response, _ := builder.Build()
 			conn.Write([]byte(response))
 		}
+		fileContent := string(fileBuffer)
 		builder, _ := responsebuilder.New(200)
-		builder.SetBody(string(fileBuffer))
+		builder.AddHeader("Content-Type", "text/html; charset=utf-8")
+		builder.AddHeader("Content-Length", strconv.Itoa(len(fileContent)))
+		builder.SetBody(fileContent)
 		response, _ := builder.Build()
 		conn.Write([]byte(response))
 	} else {
