@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"httpserver/app/httprequest"
-	"httpserver/app/responsebuilder"
+	"httpserver/app/httpresponse"
 )
 
 func main() {
@@ -34,7 +34,7 @@ func handleRequestWithRecovery(conn net.Conn) {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("Recovered from panic:", r)
-			response := responsebuilder.InternalServerError()
+			response := httpresponse.InternalServerError()
 			conn.Write([]byte(response))
 		}
 		conn.Close()
@@ -45,32 +45,32 @@ func handleRequestWithRecovery(conn net.Conn) {
 func handleRequest(conn net.Conn) {
 	request, err := httprequest.Parse(conn)
 	if err != nil {
-		response := responsebuilder.BadRequest()
+		response := httpresponse.BadRequest()
 		conn.Write([]byte(response))
 		return
 	}
 
 	if request.Target == "/" {
-		response := responsebuilder.NoContent()
+		response := httpresponse.NoContent()
 		conn.Write([]byte(response))
 	} else if strings.HasPrefix(request.Target, "/user-agent") {
 		responseBody := request.Headers["User-Agent"]
 		fmt.Println(responseBody)
-		response := responsebuilder.OK(responseBody)
+		response := httpresponse.OK(responseBody)
 		conn.Write([]byte(response))
 	} else if strings.HasPrefix(request.Target, "/echo/") {
 		responseBody := strings.Split(request.Target, "/echo/")[1]
-		response := responsebuilder.OK(responseBody)
+		response := httpresponse.OK(responseBody)
 		conn.Write([]byte(response))
 	} else if strings.HasPrefix(request.Target, "/files/") && request.Method == httprequest.GET {
 		fileName := strings.Split(request.Target, "/files/")[1]
 		fileBuffer, err := os.ReadFile(fileName)
 		if err != nil {
-			response := responsebuilder.NotFound()
+			response := httpresponse.NotFound()
 			conn.Write([]byte(response))
 		}
 		fileContent := string(fileBuffer)
-		response := responsebuilder.OK(fileContent)
+		response := httpresponse.OK(fileContent)
 		conn.Write([]byte(response))
 	} else if strings.HasPrefix(request.Target, "/files/") && request.Method == httprequest.POST {
 		fileName := strings.Split(request.Target, "/files/")[1]
@@ -82,10 +82,10 @@ func handleRequest(conn net.Conn) {
 		if err != nil {
 			panic(err)
 		}
-		response := responsebuilder.Created()
+		response := httpresponse.Created()
 		conn.Write([]byte(response))
 	} else {
-		response := responsebuilder.NotFound()
+		response := httpresponse.NotFound()
 		conn.Write([]byte(response))
 	}
 }

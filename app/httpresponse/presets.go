@@ -1,15 +1,15 @@
-package responsebuilder
+package httpresponse
 
 import (
 	"strconv"
 )
 
 func OK(body string) string {
-	builder, _ := New(200)
-	builder.AddHeader("Content-Type", "text/plain")
-	builder.AddHeader("Content-Length", strconv.Itoa(len(body)))
-	builder.SetBody(body)
-	response, err := builder.Build()
+	builder, _ := new(200)
+	builder.addHeader("Content-Type", "text/plain")
+	builder.addHeader("Content-Length", strconv.Itoa(len(body)))
+	builder.setBody(body)
+	response, err := builder.build()
 	if err != nil {
 		panic(err)
 	}
@@ -18,8 +18,8 @@ func OK(body string) string {
 }
 
 func Created() string {
-	builder, _ := New(201)
-	response, err := builder.Build()
+	builder, _ := new(201)
+	response, err := builder.build()
 	if err != nil {
 		panic(err)
 	}
@@ -28,8 +28,8 @@ func Created() string {
 }
 
 func NoContent() string {
-	builder, _ := New(204)
-	response, err := builder.Build()
+	builder, _ := new(204)
+	response, err := builder.build()
 	if err != nil {
 		panic(err)
 	}
@@ -38,8 +38,8 @@ func NoContent() string {
 }
 
 func BadRequest() string {
-	builder, _ := New(400)
-	response, err := builder.Build()
+	builder, _ := new(400)
+	response, err := builder.build()
 	if err != nil {
 		panic(err)
 	}
@@ -48,8 +48,8 @@ func BadRequest() string {
 }
 
 func NotFound() string {
-	builder, _ := New(404)
-	response, err := builder.Build()
+	builder, _ := new(404)
+	response, err := builder.build()
 	if err != nil {
 		panic(err)
 	}
@@ -58,8 +58,8 @@ func NotFound() string {
 }
 
 func InternalServerError() string {
-	builder, _ := New(500)
-	response, err := builder.Build()
+	builder, _ := new(500)
+	response, err := builder.build()
 	if err != nil {
 		panic(err)
 	}

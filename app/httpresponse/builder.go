@@ -1,18 +1,18 @@
-package responsebuilder
+package httpresponse
 
 import (
 	"fmt"
 	"strings"
 )
 
-type ResponseBuilder struct {
+type responseBuilder struct {
 	status  string
 	headers map[string]string
 	body    string
 	err     error
 }
 
-func New(code int) (*ResponseBuilder, error) {
+func new(code int) (*responseBuilder, error) {
 	var status string
 	switch code {
 	case 200:
@@ -31,13 +31,13 @@ func New(code int) (*ResponseBuilder, error) {
 		return nil, fmt.Errorf("unsupported status code: %d", code)
 	}
 
-	return &ResponseBuilder{
+	return &responseBuilder{
 		status:  fmt.Sprintf("HTTP/1.1 %d %s", code, status),
 		headers: make(map[string]string),
 	}, nil
 }
 
-func (rb *ResponseBuilder) AddHeader(name string, value string) *ResponseBuilder {
+func (rb *responseBuilder) addHeader(name string, value string) *responseBuilder {
 	if rb.err != nil {
 		return rb
 	}
@@ -46,7 +46,7 @@ func (rb *ResponseBuilder) AddHeader(name string, value string) *ResponseBuilder
 	return rb
 }
 
-func (rb *ResponseBuilder) SetBody(body string) *ResponseBuilder {
+func (rb *responseBuilder) setBody(body string) *responseBuilder {
 	if rb.err != nil {
 		return rb
 	}
@@ -59,7 +59,7 @@ func (rb *ResponseBuilder) SetBody(body string) *ResponseBuilder {
 	return rb
 }
 
-func (rb *ResponseBuilder) Build() (string, error) {
+func (rb *responseBuilder) build() (string, error) {
 	// return any error from previous steps
 	if rb.err != nil {
 		return "", rb.err
