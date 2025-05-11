@@ -19,6 +19,8 @@ func New(code int) (*ResponseBuilder, error) {
 		status = "OK"
 	case 201:
 		status = "Created"
+	case 204:
+		status = "No Content"
 	case 400:
 		status = "Bad Request"
 	case 404:
