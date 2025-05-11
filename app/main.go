@@ -74,6 +74,18 @@ func handleRequest(conn net.Conn) {
 		builder.SetBody(responseBody)
 		response, _ := builder.Build()
 		conn.Write([]byte(response))
+	} else if strings.HasPrefix(request.Target, "/files/") {
+		fileName := strings.Split(request.Target, "/files/")[1]
+		fileBuffer, err := os.ReadFile(fileName)
+		if err != nil {
+			builder, _ := responsebuilder.New(404)
+			response, _ := builder.Build()
+			conn.Write([]byte(response))
+		}
+		builder, _ := responsebuilder.New(200)
+		builder.SetBody(string(fileBuffer))
+		response, _ := builder.Build()
+		conn.Write([]byte(response))
 	} else {
 		builder, _ := responsebuilder.New(404)
 		response, _ := builder.Build()
